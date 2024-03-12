@@ -20,7 +20,9 @@ def main():
     fa_template_gray = cv2.cvtColor(fa_template, cv2.COLOR_RGB2GRAY)
     kagu_template = cv2.imread("imgs/kagu.png", cv2.IMREAD_UNCHANGED)
     kagu_template_gray = cv2.cvtColor(kagu_template, cv2.COLOR_RGB2GRAY)
-
+    varu_template = cv2.imread("imgs/varuna.png", cv2.IMREAD_UNCHANGED)
+    varu_template_gray = cv2.cvtColor(varu_template, cv2.COLOR_RGB2GRAY)
+    
     x,y,w,h = 1439,91,481,882 
     start = True
     
@@ -34,10 +36,15 @@ def main():
     
     # cv2.imshow("ok",ok)
     # cv2.waitKey()
+    
+    #0. Kagu 
+    #1. Varu 
+    summ = 1
+    
     picked_sum = False
 
     while start:
-        isFa = isKagu=  isOk = isArrow= isPa = False
+        isFa = isKagu=  isOk = isArrow= isPa =isVar = False
         pyautogui.screenshot("rawimgs/img.png",(x,y,w,h))
         raw_2 = cv2.imread("rawimgs/img.png")
         raw_2_gray = cv2.cvtColor(raw_2 , cv2.COLOR_RGB2GRAY)
@@ -45,14 +52,16 @@ def main():
         pa =  cv2.matchTemplate(raw_2_gray, pa_template_gray, cv2.TM_CCOEFF_NORMED)
         ka = cv2.matchTemplate(raw_2_gray, kagu_template_gray, cv2.TM_CCOEFF_NORMED)
         ok= cv2.matchTemplate(raw_2_gray,ok_template_gray, cv2.TM_CCOEFF_NORMED)
+        var= cv2.matchTemplate(raw_2_gray,varu_template_gray, cv2.TM_CCOEFF_NORMED)
         
         fa_res =cv2.minMaxLoc(fa)
         pa_res = cv2.minMaxLoc(pa)
         ka_res = cv2.minMaxLoc(ka)
         ok_res = cv2.minMaxLoc(ok)
+        var_res = cv2.minMaxLoc(var)
         
         
-        temp_array = [pa_res[1], fa_res[1], ka_res[1], ok_res[1]]
+        temp_array = [pa_res[1], fa_res[1], ka_res[1], ok_res[1], var_res[1]]
         
 
         print(temp_array)
@@ -76,6 +85,15 @@ def main():
             else:
                 isKagu =True
                 min_val, max_val , min_loc, max_loc = ka_res
+        elif max(temp_array) == var_res[1]:
+            if picked_sum:
+                isOk = True
+                min_val, max_val , min_loc, max_loc = ok_res
+                picked_sum= False
+                
+            else:
+                isVar =True
+                min_val, max_val , min_loc, max_loc = var_res
         elif max(temp_array) == ok_res[1]:
             isOk =True
             min_val, max_val , min_loc, max_loc = ok_res        
@@ -90,8 +108,16 @@ def main():
             sleep(random.randint(1,5) + random.random())
             print(max_val)
             print("resume")
-        elif isKagu and max_val >= 0.9:
+        elif isKagu and max_val >= 0.78 and summ ==0:
             print("is Kagu")
+            pyautogui.click(max_loc[0]+x + random.random() + random.randint(1,2), max_loc[1]+y+ random.random() + random.randint(1,2))
+            sleep(random.randint(1,5) + random.random())
+            picked_sum =True
+            
+            print(max_val)
+            print("resume")  
+        elif isVar and max_val >= 0.78 and summ ==1:
+            print("is var")
             pyautogui.click(max_loc[0]+x + random.random() + random.randint(1,2), max_loc[1]+y+ random.random() + random.randint(1,2))
             sleep(random.randint(1,5) + random.random())
             picked_sum =True
